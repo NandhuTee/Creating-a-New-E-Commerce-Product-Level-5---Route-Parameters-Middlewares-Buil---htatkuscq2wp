@@ -3,43 +3,87 @@ const express = require('express');
 const app = express();
 
 // Importing products from products.json file
-const products = JSON.parse(
-    fs.readFileSync(`${__dirname}/data/product.json`)
+let products = JSON.parse(
+    fs.readFileSync(`${__dirname}/data/products.json`)
 );
 
 // Middlewares
-app.use(express.json())
+app.use(express.json());
 
-// Write POST endpoint for creating new product here
-// Endpoint /api/v1/products
+// Validate product data
+const validateProduct = (product) => {
+    if (!product.name || typeof product.name !== 'string') {
+        return 'Product name is required and should be a string.';
+    }
+    if (!product.price || typeof product.price !== 'number' || product.price <= 0) {
+        return 'Product price is required and should be a positive number.';
+    }
+    if (!product.quantity || typeof product.quantity !== 'number' || product.quantity < 0) {
+        return 'Product quantity is required and should be a non-negative number.';
+    }
+    return null;
+};
+
+// POST endpoint for creating new product
+app.post('/api/v1/products', (req, res) => {
+    const newProduct = req.body;
+
+    // Validate the new product data
+    const validationError = validateProduct(newProduct);
+    if (validationError) {
+        return res.status(400).json({
+            status: 'fail',
+            message: validationError
+        });
+    }
+
+    // Generate new product ID
+    const newId = products.length > 0 ? products[products.length - 1].id + 1 : 1;
+    newProduct.id = newId;
+
+    // Add new product to the products array
+    products.push(newProduct);
+
+    // Save updated products array to the JSON file
+    fs.writeFileSync(`${__dirname}/data/products.json`, JSON.stringify(products, null, 2));
+
+    // Return the new product
+    res.status(201).json({
+        status: 'Success',
+        message: 'Product added successfully',
+        data: {
+            newProduct
+        }
+    });
+});
 
 // GET endpoint for sending the details of users
-app.get('/api/v1/products', (req,res) => {
+app.get('/api/v1/products', (req, res) => {
     res.status(200).json({
-    status:'Success',
-    message:'Details of products fetched successfully',
-    data:{
-        products
-    }
+        status: 'Success',
+        message: 'Details of products fetched successfully',
+        data: {
+            products
+        }
+    });
 });
-});
-app.get('/api/v1/products/:id', (req,res) => {
-    let {id} = req.params;
-    id *=1;
 
-    const product = products.find(product => product.id===id);
-    if(!product){
-        return res.status(404).send({status:"failed", message: "Product not found!"});
+app.get('/api/v1/products/:id', (req, res) => {
+    let { id } = req.params;
+    id *= 1;
+
+    const product = products.find(product => product.id === id);
+    if (!product) {
+        return res.status(404).send({ status: "failed", message: "Product not found!" });
     }
- 
+
     res.status(200).send({
-        status : 'success',
-        message : "Product fetched successfully",
+        status: 'success',
+        message: "Product fetched successfully",
         data: {
             product
         }
+    });
 });
-});
-    
-module.exports = app;
 
+module.exports = app;
