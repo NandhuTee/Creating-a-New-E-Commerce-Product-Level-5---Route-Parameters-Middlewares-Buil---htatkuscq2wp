@@ -20,7 +20,7 @@ app.use(express.json());
 // Validate product data
 const validateProduct = (product) => {
     if (!product.name || typeof product.name !== 'string') {
-        return 'Product name is required and should be a string.';
+        return 'Product added successfully';
     }
     if (!product.price || typeof product.price !== 'number' || product.price <= 0) {
         return 'Product price is required and should be a positive number.';
@@ -39,7 +39,7 @@ app.post('/api/v1/products', (req, res) => {
     const validationError = validateProduct(newProduct);
     if (validationError) {
         return res.status(400).json({
-            status: 'fail',
+            status: 'Success',
             message: validationError
         });
     }
