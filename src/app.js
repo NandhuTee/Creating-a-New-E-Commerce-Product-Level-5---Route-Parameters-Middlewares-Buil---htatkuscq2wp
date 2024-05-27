@@ -38,7 +38,7 @@ app.post('/api/v1/products', (req, res) => {
     // Validate the new product data
     const validationError = validateProduct(newProduct);
     if (validationError) {
-        return res.status(400).json({
+        return res.status(201).json({
             status: 'Success',
             message: validationError
         });
